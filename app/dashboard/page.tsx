@@ -116,7 +116,7 @@ function SwipeCard({ session }: any) {
 
     const fetchJobs = async () => {
 
-      const res = await fetch("/api/jobs")
+      const res = await fetch(`/api/jobs?email=${session?.user?.email}`)
       const data = await res.json()
 
       setJobs(data)
