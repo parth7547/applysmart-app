@@ -10,8 +10,31 @@ export default function Dashboard() {
 
   const { data: session, status } = useSession()
 
+  const [checkingPreferences, setCheckingPreferences] = useState(true)
   const [appliedCount, setAppliedCount] = useState(0)
   const [rejectedCount, setRejectedCount] = useState(0)
+
+  useEffect(() => {
+
+    const checkPreferences = async () => {
+
+      const email = session?.user?.email
+      if (!email) return
+
+      const res = await fetch(`/api/preferences?email=${email}`)
+      const data = await res.json()
+
+      if (!data.hasPreferences) {
+        window.location.href = "/preferences"
+        return
+      }
+
+      setCheckingPreferences(false)
+    }
+
+    checkPreferences()
+
+  }, [session])
 
   useEffect(() => {
 
@@ -40,7 +63,7 @@ export default function Dashboard() {
 
   }, [session])
 
-  if (status === "loading") return <p>Loading...</p>
+  if (status === "loading" || checkingPreferences) return <p>Loading...</p>
   if (!session) redirect("/")
 
   return (
@@ -116,7 +139,9 @@ function SwipeCard({ session }: any) {
 
     const fetchJobs = async () => {
 
-      const res = await fetch(`/api/jobs?email=${session?.user?.email}`)
+      if (!session?.user?.email) return
+
+      const res = await fetch(`/api/jobs?email=${session.user.email}`)
       const data = await res.json()
 
       setJobs(data)
@@ -125,7 +150,7 @@ function SwipeCard({ session }: any) {
 
     fetchJobs()
 
-  }, [])
+  }, [session])
 
   if (loading) return <p>Loading jobs...</p>
   if (!jobs.length) return <p>No jobs found.</p>
@@ -158,7 +183,6 @@ function SwipeCard({ session }: any) {
 
     <div className="flex flex-col items-center">
 
-      {/* Swipe Card */}
       <motion.div
         key={jobIndex}
         drag="x"
@@ -185,16 +209,13 @@ function SwipeCard({ session }: any) {
         `}
       >
 
-        {/* Banner */}
         <img
           src="https://images.unsplash.com/photo-1507679799987-c73779587ccf"
           className="h-40 w-full object-cover"
         />
 
-        {/* Card Content */}
         <div className="p-6 text-left">
 
-          {/* Logo + Title */}
           <div className="flex items-center gap-4 mb-4">
 
             <div className="w-12 h-12 rounded-lg bg-gray-200 flex items-center justify-center text-lg font-bold">
@@ -208,7 +229,6 @@ function SwipeCard({ session }: any) {
 
           </div>
 
-          {/* Location + Salary */}
           <div className="flex items-center gap-3 mb-4">
 
             <span className="text-xs px-3 py-1 rounded-full bg-gray-100">
@@ -223,24 +243,6 @@ function SwipeCard({ session }: any) {
 
           </div>
 
-          {/* Skills */}
-          <div className="flex flex-wrap gap-2 mb-4">
-
-            <span className="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full">
-              React
-            </span>
-
-            <span className="text-xs bg-purple-100 text-purple-700 px-3 py-1 rounded-full">
-              JavaScript
-            </span>
-
-            <span className="text-xs bg-gray-200 px-3 py-1 rounded-full">
-              API
-            </span>
-
-          </div>
-
-          {/* Overview */}
           <p className="text-sm text-gray-600 line-clamp-3">
             {job.description}
           </p>
@@ -249,7 +251,6 @@ function SwipeCard({ session }: any) {
 
       </motion.div>
 
-      {/* Buttons */}
       <div className="flex gap-8 mt-6">
 
         <button
@@ -268,7 +269,6 @@ function SwipeCard({ session }: any) {
 
       </div>
 
-      {/* Modal */}
       {showDetails && (
 
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
