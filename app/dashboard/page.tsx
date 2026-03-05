@@ -15,20 +15,21 @@ export default function Dashboard() {
 
   useEffect(() => {
 
-    if (!session?.user?.email) return
+    const email = session?.user?.email
+    if (!email) return
 
     const fetchCounts = async () => {
 
       const { count: appliedTotal } = await supabase
         .from("swipes")
         .select("*", { count: "exact", head: true })
-        .eq("user_email", session.user.email)
+        .eq("user_email", email)
         .eq("status", "applied")
 
       const { count: rejectedTotal } = await supabase
         .from("swipes")
         .select("*", { count: "exact", head: true })
-        .eq("user_email", session.user.email)
+        .eq("user_email", email)
         .eq("status", "rejected")
 
       setAppliedCount(appliedTotal || 0)
