@@ -1,36 +1,349 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ApplySmart 🚀
 
-## Getting Started
+An AI-powered swipe-based job discovery web app built for fresh graduates in India.  
+Discover relevant jobs, swipe to apply, and track your applications — all in one place.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🌐 Live Demo
+
+[https://applysmart-app.vercel.app](https://applysmart-app.vercel.app)
+
+---
+
+## 💡 What is ApplySmart?
+
+ApplySmart is a Tinder-style job discovery platform designed to reduce job-hunting stress for fresh graduates.  
+Instead of scrolling through endless job boards, users swipe through personalized job cards and apply in one click.
+
+---
+
+## ✨ Features
+
+- **Google OAuth Login** — Secure login with Google account
+- **Role-based Preferences** — Select up to 5 preferred job roles
+- **Swipe Interface** — Swipe right to view details, swipe left to skip
+- **Detailed Job View** — Full job description before applying
+- **One-click Apply** — Opens the official job application link
+- **Application Tracking** — Track all applied and rejected jobs
+- **Live Activity Feed** — Real-time swipe history in the dashboard
+- **Profile Page** — View stats, roles, and manage preferences
+- **Duplicate Prevention** — Already swiped jobs never appear again
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Animations | Framer Motion |
+| Authentication | NextAuth.js (Google OAuth) |
+| Database | Supabase (PostgreSQL) |
+| Job Data | SerpAPI (Google Jobs) |
+| Deployment | Vercel |
+
+---
+
+## 📁 Project Structure
+```
+app/
+├── page.tsx              → Home / Landing page
+├── dashboard/
+│   └── page.tsx          → Main swipe dashboard
+├── preferences/
+│   └── page.tsx          → Role selection page
+├── applied/
+│   └── page.tsx          → Applied jobs list
+├── profile/
+│   └── page.tsx          → User profile page
+├── api/
+│   ├── jobs/
+│   │   └── route.ts      → Fetch jobs from SerpAPI
+│   ├── preferences/
+│   │   └── route.ts      → Check user preferences
+│   └── auth/
+│       └── [...nextauth]/
+│           └── route.ts  → Google OAuth handler
+
+lib/
+└── supabase.ts           → Supabase client
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🗄️ Database Schema (Supabase)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**user_preferences**
+| Column | Type |
+|---|---|
+| id | uuid |
+| user_email | text (unique) |
+| roles | text[] |
+| created_at | timestamp |
 
-## Learn More
+**swipes**
+| Column | Type |
+|---|---|
+| id | uuid |
+| user_email | text |
+| job_title | text |
+| company | text |
+| status | text (applied / rejected) |
+| created_at | timestamp |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ⚙️ Environment Variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Create a `.env.local` file in the root:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+SERPAPI_KEY=your_serpapi_key
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Getting Started
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**1. Clone the repository**
+```bash
+git clone https://github.com/yourusername/applysmart-v2.git
+cd applysmart-v2
+```
+
+**2. Install dependencies**
+```bash
+npm install
+```
+
+**3. Set up environment variables**
+```bash
+cp .env.example .env.local
+# Fill in your keys
+```
+
+**4. Run the development server**
+```bash
+npm run dev
+```
+
+**5. Open in browser**
+```
+http://localhost:3000
+```
+
+---
+
+## 📸 Screenshots
+
+| Home | Dashboard | Profile |
+|---|---|---|
+| ![Home](#) | ![Dashboard](#) | ![Profile](#) |
+
+---
+
+## 🔮 Future Scope
+
+- Smart job ranking based on swipe history
+- Outreach message generator for recruiters
+- Resume upload and job match scoring
+- Rejected jobs review page
+- Mobile app version
+
+---
+
+## 👨‍💻 Built By
+
+**Parth Khatu**  
+BE in Artificial Intelligence & Data Science  
+[LinkedIn](#) • [GitHub](#)
+
+---
+
+## 📄 License
+
+MIT License — feel free to use and modify.
+
+# ApplySmart 🚀
+
+An AI-powered swipe-based job discovery web app built for fresh graduates in India.  
+Discover relevant jobs, swipe to apply, and track your applications — all in one place.
+
+---
+
+## 🌐 Live Demo
+
+[https://applysmart-app.vercel.app](https://applysmart-app.vercel.app)
+
+---
+
+## 💡 What is ApplySmart?
+
+ApplySmart is a Tinder-style job discovery platform designed to reduce job-hunting stress for fresh graduates.  
+Instead of scrolling through endless job boards, users swipe through personalized job cards and apply in one click.
+
+---
+
+## ✨ Features
+
+- **Google OAuth Login** — Secure login with Google account
+- **Role-based Preferences** — Select up to 5 preferred job roles
+- **Swipe Interface** — Swipe right to view details, swipe left to skip
+- **Detailed Job View** — Full job description before applying
+- **One-click Apply** — Opens the official job application link
+- **Application Tracking** — Track all applied and rejected jobs
+- **Live Activity Feed** — Real-time swipe history in the dashboard
+- **Profile Page** — View stats, roles, and manage preferences
+- **Duplicate Prevention** — Already swiped jobs never appear again
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript |
+| Styling | Tailwind CSS |
+| Animations | Framer Motion |
+| Authentication | NextAuth.js (Google OAuth) |
+| Database | Supabase (PostgreSQL) |
+| Job Data | SerpAPI (Google Jobs) |
+| Deployment | Vercel |
+
+---
+
+## 📁 Project Structure
+```
+app/
+├── page.tsx              → Home / Landing page
+├── dashboard/
+│   └── page.tsx          → Main swipe dashboard
+├── preferences/
+│   └── page.tsx          → Role selection page
+├── applied/
+│   └── page.tsx          → Applied jobs list
+├── profile/
+│   └── page.tsx          → User profile page
+├── api/
+│   ├── jobs/
+│   │   └── route.ts      → Fetch jobs from SerpAPI
+│   ├── preferences/
+│   │   └── route.ts      → Check user preferences
+│   └── auth/
+│       └── [...nextauth]/
+│           └── route.ts  → Google OAuth handler
+
+lib/
+└── supabase.ts           → Supabase client
+```
+
+---
+
+## 🗄️ Database Schema (Supabase)
+
+**user_preferences**
+| Column | Type |
+|---|---|
+| id | uuid |
+| user_email | text (unique) |
+| roles | text[] |
+| created_at | timestamp |
+
+**swipes**
+| Column | Type |
+|---|---|
+| id | uuid |
+| user_email | text |
+| job_title | text |
+| company | text |
+| status | text (applied / rejected) |
+| created_at | timestamp |
+
+---
+
+## ⚙️ Environment Variables
+
+Create a `.env.local` file in the root:
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+SERPAPI_KEY=your_serpapi_key
+```
+
+---
+
+## 🚀 Getting Started
+
+**1. Clone the repository**
+```bash
+git clone https://github.com/yourusername/applysmart-v2.git
+cd applysmart-v2
+```
+
+**2. Install dependencies**
+```bash
+npm install
+```
+
+**3. Set up environment variables**
+```bash
+cp .env.example .env.local
+# Fill in your keys
+```
+
+**4. Run the development server**
+```bash
+npm run dev
+```
+
+**5. Open in browser**
+```
+http://localhost:3000
+```
+
+---
+
+## 📸 Screenshots
+
+| Home | Dashboard | Profile |
+| <img width="1918" height="928" alt="image" src="https://github.com/user-attachments/assets/4bf85b62-76fe-42b0-a518-5abc2382ae60" /> | 
+| <img width="1918" height="926" alt="image" src="https://github.com/user-attachments/assets/290dce1e-ace4-45df-8bb6-dd50abb8ae06" /> | 
+| <img width="1919" height="926" alt="image" src="https://github.com/user-attachments/assets/342e0d1d-be45-49fb-9faa-c4f7143fdbfa" /> |
+
+---
+
+## 🔮 Future Scope
+
+- Smart job ranking based on swipe history
+- Outreach message generator for recruiters
+- Resume upload and job match scoring
+- Rejected jobs review page
+- Mobile app version
+
+---
+
+## 👨‍💻 Built By
+
+**Parth Khatu**  
+BE in Artificial Intelligence & Data Science  
+[[LinkedIn](#)](https://www.linkedin.com/in/parthkhatu1045/) • [[GitHub](#)](https://github.com/parth7547)
+
+---
+
+## 📄 License
+
+MIT License — feel free to use and modify.
+
