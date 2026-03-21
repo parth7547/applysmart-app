@@ -318,9 +318,9 @@ http://localhost:3000
 
 ## 📸 Screenshots
 
-| Home | Dashboard | Profile |
-| <img width="1918" height="928" alt="image" src="https://github.com/user-attachments/assets/4bf85b62-76fe-42b0-a518-5abc2382ae60" /> | 
-| <img width="1918" height="926" alt="image" src="https://github.com/user-attachments/assets/290dce1e-ace4-45df-8bb6-dd50abb8ae06" /> | 
+| Home
+| <img width="1918" height="928" alt="image" src="https://github.com/user-attachments/assets/4bf85b62-76fe-42b0-a518-5abc2382ae60" /> | Dashboard
+| <img width="1918" height="926" alt="image" src="https://github.com/user-attachments/assets/290dce1e-ace4-45df-8bb6-dd50abb8ae06" /> | Profile
 | <img width="1919" height="926" alt="image" src="https://github.com/user-attachments/assets/342e0d1d-be45-49fb-9faa-c4f7143fdbfa" /> |
 
 ---
