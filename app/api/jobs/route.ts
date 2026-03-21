@@ -47,7 +47,7 @@ export async function GET(request: Request) {
     const query = `${role} fresher india`
 
     const response = await fetch(
-      `https://serpapi.com/search.json?engine=google_jobs&q=${encodeURIComponent(query)}&api_key=${process.env.SERPAPI_KEY}`,
+      `https://serpapi.com/search.json?engine=google_jobs&q=${encodeURIComponent(query)}&hl=en&gl=in&api_key=${process.env.SERPAPI_KEY}`,
       {
         next: { revalidate: 3600 }
       }
