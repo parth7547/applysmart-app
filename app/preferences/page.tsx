@@ -11,6 +11,7 @@ export default function Preferences() {
   const router = useRouter()
 
   const [roles, setRoles] = useState<string[]>([])
+  const [saving, setSaving] = useState(false)
 
   const allRoles = [
     "Software Engineer",
@@ -23,63 +24,102 @@ export default function Preferences() {
     "DevOps Engineer"
   ]
 
-  const toggleRole = (role:string) => {
-
+  const toggleRole = (role: string) => {
     if (roles.includes(role)) {
       setRoles(roles.filter(r => r !== role))
     } else if (roles.length < 5) {
       setRoles([...roles, role])
     }
-
   }
 
   const savePreferences = async () => {
 
-    await supabase.from("user_preferences").insert([
-      {
-        user_email: session?.user?.email,
-        roles: roles
-      }
-    ])
+    if (!session?.user?.email) return
+
+    if (roles.length === 0) {
+      alert("Please select at least one role")
+      return
+    }
+
+    setSaving(true)
+
+    const { error } = await supabase
+      .from("user_preferences")
+      .upsert(
+        { user_email: session.user.email, roles },
+        { onConflict: "user_email" }
+      )
+
+    if (error) {
+      console.error("Supabase error:", error.message)
+      alert(error.message)
+      setSaving(false)
+      return
+    }
 
     router.push("/dashboard")
-
   }
 
   return (
+    <div className="min-h-screen bg-[#f0f2f5] flex flex-col">
 
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6">
+      {/* Navbar */}
+      <nav className="flex items-center px-8 py-4 bg-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+            A
+          </div>
+          <h1 className="text-lg font-bold text-gray-900">ApplySmart</h1>
+        </div>
+      </nav>
 
-      <h1 className="text-2xl font-bold">
-        Select up to 5 roles
-      </h1>
+      {/* Main */}
+      <div className="flex flex-1 items-center justify-center px-6 py-12">
 
-      <div className="grid grid-cols-2 gap-4">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 w-full max-w-lg">
 
-        {allRoles.map(role => (
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-1">Choose your roles</h2>
+            <p className="text-sm text-gray-400">
+              Select up to 5 roles. We'll find jobs matching your preferences.
+            </p>
+          </div>
+
+          {/* Role Grid */}
+          <div className="grid grid-cols-2 gap-3 mb-6">
+            {allRoles.map(role => (
+              <button
+                key={role}
+                onClick={() => toggleRole(role)}
+                className={`p-3 rounded-xl text-sm font-medium border transition text-left
+                  ${roles.includes(role)
+                    ? "bg-indigo-600 text-white border-indigo-600"
+                    : "bg-white text-gray-700 border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
+                  }`}
+              >
+                {roles.includes(role) && <span className="mr-2">✓</span>}
+                {role}
+              </button>
+            ))}
+          </div>
+
+          {/* Selected count */}
+          <p className="text-xs text-gray-400 mb-4">
+            {roles.length} of 5 roles selected
+          </p>
 
           <button
-            key={role}
-            onClick={()=>toggleRole(role)}
-            className={`p-3 border rounded-lg
-            ${roles.includes(role) ? "bg-black text-white" : ""}
-            `}
+            onClick={savePreferences}
+            disabled={saving || roles.length === 0}
+            className="w-full py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {role}
+            {saving ? "Saving..." : "Continue to Dashboard →"}
           </button>
 
-        ))}
+        </div>
 
       </div>
 
-      <button
-        onClick={savePreferences}
-        className="px-6 py-3 bg-black text-white rounded-lg"
-      >
-        Continue
-      </button>
-
     </div>
-
   )
 }
