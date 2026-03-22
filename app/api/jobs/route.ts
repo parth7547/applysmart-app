@@ -12,19 +12,19 @@ export async function GET(request: Request) {
   const email = searchParams.get("email")
 
   let roles: string[] = []
+  let locations: string[] = []
   let swipedJobs: string[] = []
 
   if (email) {
 
     const { data } = await supabase
       .from("user_preferences")
-      .select("roles")
+      .select("roles, locations")
       .eq("user_email", email)
       .single()
 
-    if (data?.roles) {
-      roles = data.roles
-    }
+    if (data?.roles) roles = data.roles
+    if (data?.locations) locations = data.locations
 
     const { data: swipeData } = await supabase
       .from("swipes")
@@ -36,35 +36,34 @@ export async function GET(request: Request) {
     }
   }
 
-  if (roles.length === 0) {
-    roles = ["Software Engineer"]
-  }
+  if (roles.length === 0) roles = ["Software Engineer"]
+  if (locations.length === 0) locations = ["India"]
 
   let allJobs: any[] = []
 
   for (const role of roles) {
+    for (const location of locations) {
 
-    const query = `${role} fresher india`
+      const query = `${role} fresher ${location}`
 
-    const response = await fetch(
-      `https://serpapi.com/search.json?engine=google_jobs&q=${encodeURIComponent(query)}&hl=en&gl=in&api_key=${process.env.SERPAPI_KEY}`,
-      {
-        next: { revalidate: 3600 }
-      }
-    )
+      const response = await fetch(
+        `https://serpapi.com/search.json?engine=google_jobs&q=${encodeURIComponent(query)}&hl=en&gl=in&api_key=${process.env.SERPAPI_KEY}`,
+        { next: { revalidate: 3600 } }
+      )
 
-    const json = await response.json()
+      const json = await response.json()
 
-    const jobs =
-      json.jobs_results?.map((job: any) => ({
-        title: job.title,
-        company: job.company_name,
-        location: job.location,
-        description: job.description,
-        applyLink: job.apply_options?.[0]?.link || ""
-      })) || []
+      const jobs =
+        json.jobs_results?.map((job: any) => ({
+          title: job.title,
+          company: job.company_name,
+          location: job.location,
+          description: job.description,
+          applyLink: job.apply_options?.[0]?.link || ""
+        })) || []
 
-    allJobs = [...allJobs, ...jobs]
+      allJobs = [...allJobs, ...jobs]
+    }
   }
 
   // remove jobs already swiped
@@ -77,5 +76,5 @@ export async function GET(request: Request) {
     new Map(filteredJobs.map(job => [job.title, job])).values()
   )
 
-  return NextResponse.json(uniqueJobs.slice(0, 15))
+  return NextResponse.json(uniqueJobs.slice(0, 20))
 }

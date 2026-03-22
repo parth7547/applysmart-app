@@ -164,7 +164,7 @@ export default function Dashboard() {
         </div>
 
         {/* Center — Swipe Card */}
-        <div className="flex-1 flex flex-col items-center justify-center">
+        <div className="flex-1 flex flex-col items-center justify-start pt-2">
           <SwipeCard
             session={session}
             incrementApplied={() => setAppliedCount(prev => prev + 1)}
@@ -228,261 +228,340 @@ function SwipeCard({
 }: any) {
 
   const [jobs, setJobs] = useState<any[]>([])
+  const [filteredJobs, setFilteredJobs] = useState<any[]>([])
   const [jobIndex, setJobIndex] = useState(0)
   const [showDetails, setShowDetails] = useState(false)
   const [loading, setLoading] = useState(true)
   const [dragDirection, setDragDirection] = useState<"left" | "right" | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [experienceFilter, setExperienceFilter] = useState<"All" | "Fresher" | "Internship" | "Full Time">("All")
+
+  const fetchJobs = async () => {
+    setLoading(true)
+    setJobIndex(0)
+    try {
+      const res = await fetch(`/api/jobs?email=${session.user.email}`)
+      const data = await res.json()
+      setJobs(data)
+    } catch (error) {
+      console.error("Error fetching jobs:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-
     if (!session?.user?.email) return
-
-    const fetchJobs = async () => {
-      try {
-        const res = await fetch(`/api/jobs?email=${session.user.email}`)
-        const data = await res.json()
-        setJobs(data)
-      } catch (error) {
-        console.error("Error fetching jobs:", error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
     fetchJobs()
-
   }, [session?.user?.email])
 
+  // Filter jobs whenever search or experience filter changes
+  useEffect(() => {
+    let result = [...jobs]
+
+    if (searchQuery.trim() !== "") {
+      const words = searchQuery.toLowerCase().split(" ").filter(Boolean)
+      result = result.filter(job => {
+        const text = `${job.title} ${job.company} ${job.location} ${job.description}`.toLowerCase()
+        return words.every(word => text.includes(word))
+      })
+    }
+
+    if (experienceFilter !== "All") {
+      result = result.filter(job => {
+        const text = (job.title + " " + job.description).toLowerCase()
+        if (experienceFilter === "Internship") return text.includes("intern")
+        if (experienceFilter === "Fresher") return text.includes("fresher") || text.includes("entry level") || text.includes("entry-level") || text.includes("graduate")
+        if (experienceFilter === "Full Time") return !text.includes("intern")
+        return true
+      })
+    }
+
+    setFilteredJobs(result)
+    setJobIndex(0)
+  }, [jobs, searchQuery, experienceFilter])
+
   if (loading) return (
-    <div className="flex flex-col items-center gap-3 text-gray-400">
+    <div className="flex flex-col items-center gap-3 text-gray-400 mt-20">
       <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
       <p className="text-sm">Finding jobs for you...</p>
     </div>
   )
 
-  if (!jobs.length) return <p className="text-gray-500 text-sm">No jobs found.</p>
-
-  if (jobIndex >= jobs.length) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 text-center">
-        <p className="text-5xl">🎉</p>
-        <h2 className="text-xl font-bold text-gray-800">You're all caught up!</h2>
-        <p className="text-gray-400 text-sm">No more jobs to review right now. Check back later.</p>
-        <button
-          onClick={() => setJobIndex(0)}
-          className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm"
-        >
-          Start Over
-        </button>
-      </div>
-    )
-  }
-
-  const job = jobs[jobIndex]
-  const defaultTags = ["Fresher", "Full Time"]
-  const tags = job.tags?.length ? job.tags : defaultTags
-
-  const handleSwipe = async (direction: string) => {
-    if (direction === "right") {
-      setShowDetails(true)
-      return
-    }
-
-    await supabase
-      .from("swipes")
-      .insert([{
-        user_email: session?.user?.email || "unknown",
-        job_title: job.title,
-        company: job.company,
-        status: "rejected"
-      }])
-
-    incrementRejected()
-    addToFeed({ title: job.title, company: job.company, status: "rejected" })
-    setJobIndex(prev => prev + 1)
-  }
+  if (!jobs.length) return <p className="text-gray-500 text-sm mt-20">No jobs found.</p>
 
   return (
     <div className="flex flex-col items-center w-full max-w-xl">
 
-      <motion.div
-        key={jobIndex}
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        onDrag={(event, info) => {
-          if (info.offset.x > 50) setDragDirection("right")
-          else if (info.offset.x < -50) setDragDirection("left")
-          else setDragDirection(null)
-        }}
-        onDragEnd={(event, info) => {
-          setDragDirection(null)
-          if (info.offset.x > 120) handleSwipe("right")
-          if (info.offset.x < -120) handleSwipe("left")
-        }}
-        className={`w-full rounded-2xl shadow-md overflow-hidden cursor-grab active:cursor-grabbing transition-colors duration-150
-          ${dragDirection === "right" ? "bg-green-50 ring-2 ring-green-300" : ""}
-          ${dragDirection === "left" ? "bg-red-50 ring-2 ring-red-300" : ""}
-          ${!dragDirection ? "bg-white" : ""}
-        `}
-      >
+      {/* Search Bar */}
+      <div className="w-full mb-3">
+        <input
+          type="text"
+          placeholder="Search by title, company or location..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        />
+      </div>
 
-        {/* Card Header with background image */}
-        <div className="h-36 relative overflow-hidden">
-          <img
-            src={`https://picsum.photos/seed/${jobIndex + 1}/600/200`}
-            alt="job background"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="absolute bottom-3 left-3 w-12 h-12 rounded-xl bg-white shadow-md flex items-center justify-center text-lg font-bold text-indigo-600">
-            {job.company?.charAt(0) || "?"}
-          </div>
+      {/* Experience Filter + Refresh */}
+      <div className="w-full flex items-center gap-2 mb-4">
+        {(["All", "Fresher", "Internship", "Full Time"] as const).map(type => (
+          <button
+            key={type}
+            onClick={() => setExperienceFilter(type)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition
+              ${experienceFilter === type
+                ? "bg-indigo-600 text-white border-indigo-600"
+                : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
+              }`}
+          >
+            {type}
+          </button>
+        ))}
 
-          {dragDirection === "right" && (
-            <div className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full rotate-[-12deg]">
-              APPLY ✓
-            </div>
-          )}
-          {dragDirection === "left" && (
-            <div className="absolute top-4 right-4 bg-red-400 text-white text-xs font-bold px-3 py-1 rounded-full rotate-[12deg]">
-              SKIP ✕
-            </div>
-          )}
-        </div>
-
-        <div className="p-6">
-
-          <h3 className="text-xl font-bold text-gray-900 leading-tight">{job.title}</h3>
-          <p className="text-indigo-600 font-medium text-sm mt-1">{job.company}</p>
-
-          <div className="flex items-center gap-3 mt-3">
-            <span className="text-xs text-gray-500 flex items-center gap-1">
-              📍 {job.location}
-            </span>
-            {job.salary && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
-                {job.salary}
-              </span>
-            )}
-          </div>
-
-          <div className="flex gap-2 mt-4 flex-wrap">
-            {tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 font-medium border border-indigo-100"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-
-          <div className="mt-4">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Role Overview</p>
-            <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
-              {job.description}
-            </p>
-          </div>
-
-        </div>
-      </motion.div>
-
-      {/* Swipe Buttons */}
-      <div className="flex gap-8 mt-6">
         <button
-          onClick={() => handleSwipe("left")}
-          className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-red-400 text-xl hover:shadow-lg hover:scale-105 transition-transform"
+          onClick={fetchJobs}
+          className="ml-auto px-3 py-1.5 rounded-full text-xs font-medium border border-gray-200 bg-white text-gray-600 hover:border-indigo-300 hover:text-indigo-600 transition"
         >
-          ✕
-        </button>
-        <button
-          onClick={() => handleSwipe("right")}
-          className="w-14 h-14 rounded-full bg-green-500 text-white shadow-md flex items-center justify-center text-xl hover:shadow-lg hover:scale-105 transition-transform"
-        >
-          ❤
+          🔄 Refresh
         </button>
       </div>
 
-      {/* Detail Modal */}
-      {showDetails && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
-
-            <div className="p-6 border-b flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-xl font-bold text-indigo-600 shrink-0">
-                {job.company?.charAt(0)}
-              </div>
-              <div>
-                <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
-                <p className="text-indigo-600 text-sm font-medium">{job.company}</p>
-                <p className="text-gray-400 text-xs mt-0.5">📍 {job.location}</p>
-              </div>
-            </div>
-
-            <div className="p-6 overflow-y-auto flex-1">
-              <div className="flex gap-2 flex-wrap mb-4">
-                {tags.map((tag: string) => (
-                  <span key={tag} className="text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Job Description</p>
-              <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
-                {job.description}
-              </p>
-            </div>
-
-            <div className="p-6 border-t flex justify-between">
-              <button
-                onClick={async () => {
-                  await supabase
-                    .from("swipes")
-                    .insert([{
-                      user_email: session?.user?.email || "unknown",
-                      job_title: job.title,
-                      company: job.company,
-                      status: "rejected"
-                    }])
-                  incrementRejected()
-                  addToFeed({ title: job.title, company: job.company, status: "rejected" })
-                  setShowDetails(false)
-                  setJobIndex(prev => prev + 1)
-                }}
-                className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 text-gray-600"
-              >
-                Skip
-              </button>
-
-              <button
-                onClick={async () => {
-                  await supabase
-                    .from("swipes")
-                    .insert([{
-                      user_email: session?.user?.email || "unknown",
-                      job_title: job.title,
-                      company: job.company,
-                      status: "applied"
-                    }])
-                  incrementApplied()
-                  addToFeed({ title: job.title, company: job.company, status: "applied" })
-                  setShowDetails(false)
-                  setJobIndex(prev => prev + 1)
-                  if (job.applyLink && job.applyLink.trim() !== "") {
-                    window.open(job.applyLink, "_blank")
-                  } else {
-                    alert("No apply link available for this job.")
-                  }
-                }}
-                className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
-              >
-                Apply Now
-              </button>
-            </div>
-
-          </div>
+      {/* No results after filter */}
+      {filteredJobs.length === 0 && (
+        <div className="flex flex-col items-center gap-3 text-center mt-10">
+          <p className="text-3xl">🔍</p>
+          <p className="text-gray-500 text-sm">No jobs match your search or filter.</p>
+          <button
+            onClick={() => { setSearchQuery(""); setExperienceFilter("All") }}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700"
+          >
+            Clear Filters
+          </button>
         </div>
       )}
+
+      {/* All caught up */}
+      {filteredJobs.length > 0 && jobIndex >= filteredJobs.length && (
+        <div className="flex flex-col items-center justify-center gap-4 text-center mt-10">
+          <p className="text-5xl">🎉</p>
+          <h2 className="text-xl font-bold text-gray-800">You're all caught up!</h2>
+          <p className="text-gray-400 text-sm">No more jobs to review right now.</p>
+          <button
+            onClick={() => setJobIndex(0)}
+            className="px-5 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm"
+          >
+            Start Over
+          </button>
+        </div>
+      )}
+
+      {/* Job Card */}
+      {filteredJobs.length > 0 && jobIndex < filteredJobs.length && (() => {
+        const job = filteredJobs[jobIndex]
+        const defaultTags = ["Fresher", "Full Time"]
+        const tags = job.tags?.length ? job.tags : defaultTags
+
+        const handleSwipe = async (direction: string) => {
+          if (direction === "right") {
+            setShowDetails(true)
+            return
+          }
+
+          await supabase
+            .from("swipes")
+            .insert([{
+              user_email: session?.user?.email || "unknown",
+              job_title: job.title,
+              company: job.company,
+              status: "rejected"
+            }])
+
+          incrementRejected()
+          addToFeed({ title: job.title, company: job.company, status: "rejected" })
+          setJobIndex(prev => prev + 1)
+        }
+
+        return (
+          <>
+            <motion.div
+              key={jobIndex}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDrag={(event, info) => {
+                if (info.offset.x > 50) setDragDirection("right")
+                else if (info.offset.x < -50) setDragDirection("left")
+                else setDragDirection(null)
+              }}
+              onDragEnd={(event, info) => {
+                setDragDirection(null)
+                if (info.offset.x > 120) handleSwipe("right")
+                if (info.offset.x < -120) handleSwipe("left")
+              }}
+              className={`w-full rounded-2xl shadow-md overflow-hidden cursor-grab active:cursor-grabbing transition-colors duration-150
+                ${dragDirection === "right" ? "bg-green-50 ring-2 ring-green-300" : ""}
+                ${dragDirection === "left" ? "bg-red-50 ring-2 ring-red-300" : ""}
+                ${!dragDirection ? "bg-white" : ""}
+              `}
+            >
+              <div className="h-36 relative overflow-hidden">
+                <img
+                  src={`https://picsum.photos/seed/${jobIndex + 1}/600/200`}
+                  alt="job background"
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/30" />
+                <div className="absolute bottom-3 left-3 w-12 h-12 rounded-xl bg-white shadow-md flex items-center justify-center text-lg font-bold text-indigo-600">
+                  {job.company?.charAt(0) || "?"}
+                </div>
+
+                {dragDirection === "right" && (
+                  <div className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full rotate-[-12deg]">
+                    APPLY ✓
+                  </div>
+                )}
+                {dragDirection === "left" && (
+                  <div className="absolute top-4 right-4 bg-red-400 text-white text-xs font-bold px-3 py-1 rounded-full rotate-[12deg]">
+                    SKIP ✕
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6">
+                <h3 className="text-xl font-bold text-gray-900 leading-tight">{job.title}</h3>
+                <p className="text-indigo-600 font-medium text-sm mt-1">{job.company}</p>
+
+                <div className="flex items-center gap-3 mt-3">
+                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                    📍 {job.location}
+                  </span>
+                  {job.salary && (
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700 font-medium">
+                      {job.salary}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex gap-2 mt-4 flex-wrap">
+                  {tags.map((tag: string) => (
+                    <span
+                      key={tag}
+                      className="text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 font-medium border border-indigo-100"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-4">
+                  <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Role Overview</p>
+                  <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
+                    {job.description}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Swipe Buttons */}
+            <div className="flex gap-8 mt-6">
+              <button
+                onClick={() => handleSwipe("left")}
+                className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-red-400 text-xl hover:shadow-lg hover:scale-105 transition-transform"
+              >
+                ✕
+              </button>
+              <button
+                onClick={() => handleSwipe("right")}
+                className="w-14 h-14 rounded-full bg-green-500 text-white shadow-md flex items-center justify-center text-xl hover:shadow-lg hover:scale-105 transition-transform"
+              >
+                ❤
+              </button>
+            </div>
+
+            {/* Detail Modal */}
+            {showDetails && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+
+                  <div className="p-6 border-b flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-xl font-bold text-indigo-600 shrink-0">
+                      {job.company?.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
+                      <p className="text-indigo-600 text-sm font-medium">{job.company}</p>
+                      <p className="text-gray-400 text-xs mt-0.5">📍 {job.location}</p>
+                    </div>
+                  </div>
+
+                  <div className="p-6 overflow-y-auto flex-1">
+                    <div className="flex gap-2 flex-wrap mb-4">
+                      {tags.map((tag: string) => (
+                        <span key={tag} className="text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Job Description</p>
+                    <p className="text-sm text-gray-600 whitespace-pre-line leading-relaxed">
+                      {job.description}
+                    </p>
+                  </div>
+
+                  <div className="p-6 border-t flex justify-between">
+                    <button
+                      onClick={async () => {
+                        await supabase
+                          .from("swipes")
+                          .insert([{
+                            user_email: session?.user?.email || "unknown",
+                            job_title: job.title,
+                            company: job.company,
+                            status: "rejected"
+                          }])
+                        incrementRejected()
+                        addToFeed({ title: job.title, company: job.company, status: "rejected" })
+                        setShowDetails(false)
+                        setJobIndex(prev => prev + 1)
+                      }}
+                      className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 text-gray-600"
+                    >
+                      Skip
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        await supabase
+                          .from("swipes")
+                          .insert([{
+                            user_email: session?.user?.email || "unknown",
+                            job_title: job.title,
+                            company: job.company,
+                            status: "applied"
+                          }])
+                        incrementApplied()
+                        addToFeed({ title: job.title, company: job.company, status: "applied" })
+                        setShowDetails(false)
+                        setJobIndex(prev => prev + 1)
+                        if (job.applyLink && job.applyLink.trim() !== "") {
+                          window.open(job.applyLink, "_blank")
+                        } else {
+                          alert("No apply link available for this job.")
+                        }
+                      }}
+                      className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
+                    >
+                      Apply Now
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            )}
+          </>
+        )
+      })()}
 
     </div>
   )
