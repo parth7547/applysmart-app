@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [checkingPreferences, setCheckingPreferences] = useState(true)
   const [appliedCount, setAppliedCount] = useState(0)
   const [rejectedCount, setRejectedCount] = useState(0)
+  const [savedCount, setSavedCount] = useState(0)
   const [activityFeed, setActivityFeed] = useState<{ title: string, company: string, status: string }[]>([])
 
   useEffect(() => {
@@ -21,7 +22,6 @@ export default function Dashboard() {
     if (!session?.user?.email) return
 
     const checkPreferences = async () => {
-
       const res = await fetch(`/api/preferences?email=${session?.user?.email}`)
       const data = await res.json()
 
@@ -56,8 +56,14 @@ export default function Dashboard() {
         .eq("user_email", email)
         .eq("status", "rejected")
 
+      const { count: savedTotal } = await supabase
+        .from("saved_jobs")
+        .select("*", { count: "exact", head: true })
+        .eq("user_email", email)
+
       setAppliedCount(appliedTotal || 0)
       setRejectedCount(rejectedTotal || 0)
+      setSavedCount(savedTotal || 0)
     }
 
     fetchCounts()
@@ -81,7 +87,6 @@ export default function Dashboard() {
         </div>
 
         <div className="flex items-center gap-3 md:gap-6">
-          {/* Hide these on mobile */}
           <span className="hidden md:block text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer">
             Dashboard
           </span>
@@ -90,6 +95,12 @@ export default function Dashboard() {
             className="hidden md:block text-sm font-medium text-gray-400 hover:text-gray-900 cursor-pointer"
           >
             Applied
+          </span>
+          <span
+            onClick={() => window.location.href = "/saved"}
+            className="hidden md:block text-sm font-medium text-gray-400 hover:text-gray-900 cursor-pointer"
+          >
+            Saved
           </span>
 
           <div
@@ -110,7 +121,7 @@ export default function Dashboard() {
       {/* Main Layout */}
       <div className="flex flex-1 max-w-7xl mx-auto w-full px-3 md:px-6 py-4 md:py-8 gap-6">
 
-        {/* Left Panel — hidden on mobile */}
+        {/* Left Panel */}
         <div className="hidden md:flex w-72 flex-col gap-4">
 
           <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -123,10 +134,22 @@ export default function Dashboard() {
               </span>
             </div>
 
-            <div className="flex justify-between items-center py-2">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
               <span className="text-sm text-gray-700">Rejected</span>
               <span className="text-sm font-bold text-red-400 bg-red-50 px-2 py-0.5 rounded-full">
                 {rejectedCount}
+              </span>
+            </div>
+
+            <div className="flex justify-between items-center py-2">
+              <span
+                onClick={() => window.location.href = "/saved"}
+                className="text-sm text-gray-700 cursor-pointer hover:text-indigo-600"
+              >
+                Saved
+              </span>
+              <span className="text-sm font-bold text-yellow-500 bg-yellow-50 px-2 py-0.5 rounded-full">
+                {savedCount}
               </span>
             </div>
           </div>
@@ -140,14 +163,14 @@ export default function Dashboard() {
               <div className="flex flex-col gap-3">
                 {activityFeed.slice(0, 5).map((item, index) => (
                   <div key={index} className="flex items-start gap-2">
-                    <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.status === "applied" ? "bg-green-500" : "bg-red-400"}`}></span>
+                    <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.status === "applied" ? "bg-green-500" : item.status === "saved" ? "bg-yellow-400" : "bg-red-400"}`}></span>
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-medium text-gray-700 leading-tight truncate">{item.title}</p>
                       <p className="text-xs text-gray-400">{item.company}</p>
                     </div>
                     <span className={`ml-auto text-xs px-2 py-0.5 rounded-full shrink-0 font-medium
-                      ${item.status === "applied" ? "bg-green-50 text-green-600" : "bg-red-50 text-red-400"}`}>
-                      {item.status === "applied" ? "✅" : "❌"}
+                      ${item.status === "applied" ? "bg-green-50 text-green-600" : item.status === "saved" ? "bg-yellow-50 text-yellow-600" : "bg-red-50 text-red-400"}`}>
+                      {item.status === "applied" ? "✅" : item.status === "saved" ? "🔖" : "❌"}
                     </span>
                   </div>
                 ))}
@@ -164,7 +187,7 @@ export default function Dashboard() {
 
         </div>
 
-        {/* Mobile Stats Bar */}
+        {/* Mobile Bottom Nav */}
         <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
           <div className="flex items-center justify-around px-4 py-3">
             <button
@@ -182,6 +205,16 @@ export default function Dashboard() {
               <span className="text-xs text-gray-500">Applied</span>
               {appliedCount > 0 && (
                 <span className="text-xs text-green-600 font-bold">{appliedCount}</span>
+              )}
+            </button>
+            <button
+              onClick={() => window.location.href = "/saved"}
+              className="flex flex-col items-center gap-0.5"
+            >
+              <span className="text-lg">🔖</span>
+              <span className="text-xs text-gray-500">Saved</span>
+              {savedCount > 0 && (
+                <span className="text-xs text-yellow-600 font-bold">{savedCount}</span>
               )}
             </button>
             <button
@@ -207,13 +240,14 @@ export default function Dashboard() {
             session={session}
             incrementApplied={() => setAppliedCount(prev => prev + 1)}
             incrementRejected={() => setRejectedCount(prev => prev + 1)}
+            incrementSaved={() => setSavedCount(prev => prev + 1)}
             addToFeed={(item: { title: string, company: string, status: string }) =>
               setActivityFeed(prev => [item, ...prev])
             }
           />
         </div>
 
-        {/* Right Panel — hidden on mobile */}
+        {/* Right Panel */}
         <div className="hidden md:flex w-72 flex-col gap-4">
 
           <div className="bg-indigo-700 rounded-2xl p-5 shadow-sm">
@@ -242,7 +276,7 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Footer — hidden on mobile */}
+      {/* Footer */}
       <footer className="hidden md:block text-center py-5 text-xs text-gray-400 border-t bg-white">
         <div className="flex justify-center gap-6 mb-1">
           <a href="#" className="hover:text-gray-600">Privacy</a>
@@ -260,6 +294,7 @@ function SwipeCard({
   session,
   incrementApplied,
   incrementRejected,
+  incrementSaved,
   addToFeed
 }: any) {
 
@@ -273,6 +308,7 @@ function SwipeCard({
   const [searchQuery, setSearchQuery] = useState("")
   const [experienceFilter, setExperienceFilter] = useState<"All" | "Fresher" | "Internship" | "Full Time">("All")
   const [viewMode, setViewMode] = useState<"swipe" | "list">("swipe")
+  const [savingJob, setSavingJob] = useState(false)
 
   const fetchJobs = async () => {
     setLoading(true)
@@ -318,6 +354,27 @@ function SwipeCard({
     setJobIndex(0)
   }, [jobs, searchQuery, experienceFilter])
 
+  const handleSaveJob = async (job: any) => {
+    if (savingJob) return
+    setSavingJob(true)
+
+    await supabase
+      .from("saved_jobs")
+      .insert([{
+        user_email: session?.user?.email || "unknown",
+        job_title: job.title,
+        company: job.company,
+        location: job.location || "",
+        description: job.description || "",
+        apply_link: job.applyLink || "",
+        salary: job.salary || ""
+      }])
+
+    incrementSaved()
+    addToFeed({ title: job.title, company: job.company, status: "saved" })
+    setSavingJob(false)
+  }
+
   if (loading) return (
     <div className="flex flex-col items-center gap-3 text-gray-400 mt-20">
       <div className="w-10 h-10 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
@@ -359,7 +416,6 @@ function SwipeCard({
           </button>
         ))}
 
-        {/* View Toggle */}
         <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full p-1">
           <button
             onClick={() => setViewMode("swipe")}
@@ -417,15 +473,23 @@ function SwipeCard({
                 <p className="text-xs text-gray-400 mt-0.5">📍 {job.location}</p>
               </div>
 
-              <button
-                onClick={() => {
-                  setSelectedJob(job)
-                  setShowDetails(true)
-                }}
-                className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700 shrink-0"
-              >
-                View
-              </button>
+              <div className="flex gap-2 shrink-0">
+                <button
+                  onClick={() => handleSaveJob(job)}
+                  className="px-3 py-1.5 border border-yellow-300 text-yellow-500 text-xs rounded-lg hover:bg-yellow-50 transition"
+                >
+                  🔖
+                </button>
+                <button
+                  onClick={() => {
+                    setSelectedJob(job)
+                    setShowDetails(true)
+                  }}
+                  className="px-3 py-1.5 bg-indigo-600 text-white text-xs rounded-lg hover:bg-indigo-700"
+                >
+                  View
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -507,6 +571,17 @@ function SwipeCard({
                   {job.company?.charAt(0) || "?"}
                 </div>
 
+                {/* Save button on card */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleSaveJob(job)
+                  }}
+                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 flex items-center justify-center text-sm hover:bg-white transition shadow"
+                >
+                  🔖
+                </button>
+
                 {dragDirection === "right" && (
                   <div className="absolute top-4 left-4 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full rotate-[-12deg]">
                     APPLY ✓
@@ -587,6 +662,12 @@ function SwipeCard({
                   <p className="text-indigo-600 text-sm font-medium">{job.company}</p>
                   <p className="text-gray-400 text-xs mt-0.5">📍 {job.location}</p>
                 </div>
+                <button
+                  onClick={() => handleSaveJob(job)}
+                  className="px-3 py-1.5 border border-yellow-300 text-yellow-500 text-xs rounded-lg hover:bg-yellow-50 shrink-0"
+                >
+                  🔖 Save
+                </button>
               </div>
 
               <div className="p-4 md:p-6 overflow-y-auto flex-1">

@@ -98,6 +98,7 @@ export default function Profile() {
               <img
                 src={session.user.image}
                 alt="avatar"
+                referrerPolicy="no-referrer"
                 className="w-16 h-16 rounded-full object-cover"
               />
             ) : (
