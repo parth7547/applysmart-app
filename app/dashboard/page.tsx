@@ -72,7 +72,7 @@ export default function Dashboard() {
     <div className="min-h-screen flex flex-col bg-[#f0f2f5]">
 
       {/* Navbar */}
-      <div className="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
+      <div className="flex justify-between items-center px-4 md:px-8 py-4 bg-white shadow-sm">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
             A
@@ -80,14 +80,18 @@ export default function Dashboard() {
           <h1 className="text-lg font-bold text-gray-900">ApplySmart</h1>
         </div>
 
-        <div className="flex items-center gap-6">
-          <span className="text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer">Dashboard</span>
+        <div className="flex items-center gap-3 md:gap-6">
+          {/* Hide these on mobile */}
+          <span className="hidden md:block text-sm font-medium text-gray-600 hover:text-gray-900 cursor-pointer">
+            Dashboard
+          </span>
           <span
             onClick={() => window.location.href = "/applied"}
-            className="text-sm font-medium text-gray-400 hover:text-gray-900 cursor-pointer"
+            className="hidden md:block text-sm font-medium text-gray-400 hover:text-gray-900 cursor-pointer"
           >
             Applied
           </span>
+
           <div
             onClick={() => window.location.href = "/profile"}
             className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-600 cursor-pointer hover:ring-2 hover:ring-indigo-400 transition"
@@ -96,7 +100,7 @@ export default function Dashboard() {
           </div>
           <button
             onClick={() => signOut()}
-            className="text-sm text-gray-500 hover:text-gray-900 uppercase tracking-wide font-medium"
+            className="text-xs md:text-sm text-gray-500 hover:text-gray-900 uppercase tracking-wide font-medium"
           >
             Logout
           </button>
@@ -104,9 +108,9 @@ export default function Dashboard() {
       </div>
 
       {/* Main Layout */}
-      <div className="flex flex-1 max-w-7xl mx-auto w-full px-6 py-8 gap-6">
+      <div className="flex flex-1 max-w-7xl mx-auto w-full px-3 md:px-6 py-4 md:py-8 gap-6">
 
-        {/* Left Panel */}
+        {/* Left Panel — hidden on mobile */}
         <div className="hidden md:flex w-72 flex-col gap-4">
 
           <div className="bg-white rounded-2xl p-5 shadow-sm">
@@ -160,8 +164,45 @@ export default function Dashboard() {
 
         </div>
 
+        {/* Mobile Stats Bar */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
+          <div className="flex items-center justify-around px-4 py-3">
+            <button
+              onClick={() => window.location.href = "/dashboard"}
+              className="flex flex-col items-center gap-0.5"
+            >
+              <span className="text-lg">🏠</span>
+              <span className="text-xs text-indigo-600 font-medium">Home</span>
+            </button>
+            <button
+              onClick={() => window.location.href = "/applied"}
+              className="flex flex-col items-center gap-0.5"
+            >
+              <span className="text-lg">✅</span>
+              <span className="text-xs text-gray-500">Applied</span>
+              {appliedCount > 0 && (
+                <span className="text-xs text-green-600 font-bold">{appliedCount}</span>
+              )}
+            </button>
+            <button
+              onClick={() => window.location.href = "/preferences"}
+              className="flex flex-col items-center gap-0.5"
+            >
+              <span className="text-lg">⚙️</span>
+              <span className="text-xs text-gray-500">Prefs</span>
+            </button>
+            <button
+              onClick={() => window.location.href = "/profile"}
+              className="flex flex-col items-center gap-0.5"
+            >
+              <span className="text-lg">👤</span>
+              <span className="text-xs text-gray-500">Profile</span>
+            </button>
+          </div>
+        </div>
+
         {/* Center */}
-        <div className="flex-1 flex flex-col items-center justify-start pt-2">
+        <div className="flex-1 flex flex-col items-center justify-start pt-2 pb-20 md:pb-0">
           <SwipeCard
             session={session}
             incrementApplied={() => setAppliedCount(prev => prev + 1)}
@@ -172,7 +213,7 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Right Panel */}
+        {/* Right Panel — hidden on mobile */}
         <div className="hidden md:flex w-72 flex-col gap-4">
 
           <div className="bg-indigo-700 rounded-2xl p-5 shadow-sm">
@@ -201,8 +242,8 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Footer */}
-      <footer className="text-center py-5 text-xs text-gray-400 border-t bg-white">
+      {/* Footer — hidden on mobile */}
+      <footer className="hidden md:block text-center py-5 text-xs text-gray-400 border-t bg-white">
         <div className="flex justify-center gap-6 mb-1">
           <a href="#" className="hover:text-gray-600">Privacy</a>
           <a href="#" className="hover:text-gray-600">Terms</a>
@@ -302,7 +343,7 @@ function SwipeCard({
         />
       </div>
 
-      {/* Filters + View Toggle + Refresh */}
+      {/* Filters Row */}
       <div className="w-full flex items-center gap-2 mb-4 flex-wrap">
         {(["All", "Fresher", "Internship", "Full Time"] as const).map(type => (
           <button
@@ -319,20 +360,20 @@ function SwipeCard({
         ))}
 
         {/* View Toggle */}
-        <div className="ml-auto flex items-center gap-1 bg-white border border-gray-200 rounded-full p-1">
+        <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-full p-1">
           <button
             onClick={() => setViewMode("swipe")}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition
+            className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium transition
               ${viewMode === "swipe" ? "bg-indigo-600 text-white" : "text-gray-500 hover:text-indigo-600"}`}
           >
-            🃏 Swipe
+            🃏 <span className="hidden sm:inline">Swipe</span>
           </button>
           <button
             onClick={() => setViewMode("list")}
-            className={`px-3 py-1 rounded-full text-xs font-medium transition
+            className={`px-2 md:px-3 py-1 rounded-full text-xs font-medium transition
               ${viewMode === "list" ? "bg-indigo-600 text-white" : "text-gray-500 hover:text-indigo-600"}`}
           >
-            📋 List
+            📋 <span className="hidden sm:inline">List</span>
           </button>
         </div>
 
@@ -455,14 +496,14 @@ function SwipeCard({
                 ${!dragDirection ? "bg-white" : ""}
               `}
             >
-              <div className="h-36 relative overflow-hidden">
+              <div className="h-32 md:h-36 relative overflow-hidden">
                 <img
                   src={`https://picsum.photos/seed/${jobIndex + 1}/600/200`}
                   alt="job background"
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute inset-0 bg-black/30" />
-                <div className="absolute bottom-3 left-3 w-12 h-12 rounded-xl bg-white shadow-md flex items-center justify-center text-lg font-bold text-indigo-600">
+                <div className="absolute bottom-3 left-3 w-10 h-10 md:w-12 md:h-12 rounded-xl bg-white shadow-md flex items-center justify-center text-base md:text-lg font-bold text-indigo-600">
                   {job.company?.charAt(0) || "?"}
                 </div>
 
@@ -478,8 +519,8 @@ function SwipeCard({
                 )}
               </div>
 
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 leading-tight">{job.title}</h3>
+              <div className="p-4 md:p-6">
+                <h3 className="text-lg md:text-xl font-bold text-gray-900 leading-tight">{job.title}</h3>
                 <p className="text-indigo-600 font-medium text-sm mt-1">{job.company}</p>
 
                 <div className="flex items-center gap-3 mt-3">
@@ -493,7 +534,7 @@ function SwipeCard({
                   )}
                 </div>
 
-                <div className="flex gap-2 mt-4 flex-wrap">
+                <div className="flex gap-2 mt-3 flex-wrap">
                   {tags.map((tag: string) => (
                     <span key={tag} className="text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 font-medium border border-indigo-100">
                       {tag}
@@ -501,7 +542,7 @@ function SwipeCard({
                   ))}
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-3">
                   <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Role Overview</p>
                   <p className="text-sm text-gray-600 line-clamp-3 leading-relaxed">
                     {job.description}
@@ -510,7 +551,7 @@ function SwipeCard({
               </div>
             </motion.div>
 
-            <div className="flex gap-8 mt-6">
+            <div className="flex gap-8 mt-5">
               <button
                 onClick={() => handleSwipe("left")}
                 className="w-14 h-14 rounded-full bg-white shadow-md flex items-center justify-center text-red-400 text-xl hover:shadow-lg hover:scale-105 transition-transform"
@@ -528,27 +569,27 @@ function SwipeCard({
         )
       })()}
 
-      {/* Detail Modal — shared between swipe and list view */}
+      {/* Detail Modal */}
       {showDetails && selectedJob && (() => {
         const job = selectedJob
         const tags = job.tags?.length ? job.tags : defaultTags
 
         return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl">
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 md:p-4 z-50">
+            <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl">
 
-              <div className="p-6 border-b flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-xl font-bold text-indigo-600 shrink-0">
+              <div className="p-4 md:p-6 border-b flex items-start gap-4">
+                <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-indigo-50 flex items-center justify-center text-lg font-bold text-indigo-600 shrink-0">
                   {job.company?.charAt(0)}
                 </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900">{job.title}</h3>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base md:text-xl font-bold text-gray-900 leading-tight">{job.title}</h3>
                   <p className="text-indigo-600 text-sm font-medium">{job.company}</p>
                   <p className="text-gray-400 text-xs mt-0.5">📍 {job.location}</p>
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto flex-1">
+              <div className="p-4 md:p-6 overflow-y-auto flex-1">
                 <div className="flex gap-2 flex-wrap mb-4">
                   {tags.map((tag: string) => (
                     <span key={tag} className="text-xs px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100">
@@ -562,7 +603,7 @@ function SwipeCard({
                 </p>
               </div>
 
-              <div className="p-6 border-t flex justify-between">
+              <div className="p-4 md:p-6 border-t flex justify-between">
                 <button
                   onClick={async () => {
                     await supabase
@@ -579,7 +620,7 @@ function SwipeCard({
                     setSelectedJob(null)
                     if (viewMode === "swipe") setJobIndex(prev => prev + 1)
                   }}
-                  className="px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 text-gray-600"
+                  className="px-4 md:px-5 py-2 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 text-gray-600"
                 >
                   Skip
                 </button>
@@ -605,7 +646,7 @@ function SwipeCard({
                       alert("No apply link available for this job.")
                     }
                   }}
-                  className="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
+                  className="px-4 md:px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm hover:bg-indigo-700"
                 >
                   Apply Now
                 </button>
