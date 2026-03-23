@@ -180,7 +180,8 @@ http://localhost:3000
 |---|---|---|
 | <img width="1276" height="928" alt="image" src="https://github.com/user-attachments/assets/23e99c10-aa7b-43ad-989d-58563f3a1894" />
  | <img width="1280" height="926" alt="image" src="https://github.com/user-attachments/assets/c17db58c-4fe5-4a21-bbbf-cf921d622448" />
- | <img width="1919" height="926" alt="Profile" src="https://github.com/user-attachments/assets/342e0d1d-be45-49fb-9faa-c4f7143fdbfa" /> |
+ | <img width="1273" height="925" alt="image" src="https://github.com/user-attachments/assets/4fc7a357-5650-4606-ae73-410f82068999" />
+ |
 
 ---
 
