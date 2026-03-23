@@ -56,6 +56,14 @@ export default function Home() {
 
         <p className="text-xs text-gray-400 mt-4">No signup required. Login with Google in seconds.</p>
 
+        <div className="mt-8 pt-8 border-t border-gray-200">
+          <p className="text-sm text-gray-500 mb-3">Are you a recruiter?</p>
+          
+          <a href="/recruiter" className="px-6 py-3 border border-indigo-200 text-indigo-600 rounded-xl text-sm font-medium hover:bg-indigo-50 transition inline-block">
+            Post Jobs on ApplySmart →
+          </a>
+        </div>
+
       </section>
 
       {/* Features */}

@@ -41,6 +41,7 @@ export async function GET(request: Request) {
 
   let allJobs: any[] = []
 
+  // Fetch from SerpAPI
   for (const role of roles) {
     for (const location of locations) {
 
@@ -59,19 +60,42 @@ export async function GET(request: Request) {
           company: job.company_name,
           location: job.location,
           description: job.description,
-          applyLink: job.apply_options?.[0]?.link || ""
+          applyLink: job.apply_options?.[0]?.link || "",
+          salary: job.salary || "",
+          source: "serpapi"
         })) || []
 
       allJobs = [...allJobs, ...jobs]
     }
   }
 
-  // remove jobs already swiped
+  // Fetch recruiter posted jobs from Supabase
+  const { data: postedJobs } = await supabase
+    .from("posted_jobs")
+    .select("*")
+    .order("created_at", { ascending: false })
+
+  if (postedJobs && postedJobs.length > 0) {
+    const mapped = postedJobs.map((job: any) => ({
+      title: job.title,
+      company: job.company,
+      location: job.location,
+      description: job.description,
+      applyLink: job.apply_link || "",
+      salary: job.salary || "",
+      source: "posted"
+    }))
+
+    // Add posted jobs at the top so they appear first
+    allJobs = [...mapped, ...allJobs]
+  }
+
+  // Remove already swiped jobs
   const filteredJobs = allJobs.filter(
     job => !swipedJobs.includes(job.title)
   )
 
-  // remove duplicates by title
+  // Remove duplicates by title
   const uniqueJobs = Array.from(
     new Map(filteredJobs.map(job => [job.title, job])).values()
   )
